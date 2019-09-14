@@ -1,32 +1,57 @@
 import React from 'react';
+import axios from 'axios'
+import { withFormik, Form, Field } from 'formik'
+import * as yup from 'yup'
+import {Input, Button } from 'semantic-ui-react'
 
-const AnimalForm = ({ errors, touched }) => {
+
+function validateEmail(value) {
+  let error;
+  if (!value) {
+    error = 'Required';
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value)) {
+    error = 'Invalid email address';
+  }
+  return error;
+}
+
+function validateUsername(value) {
+  let error;
+  if (value === 'admin') {
+    error = 'Nice try!';
+  }
+  return error;
+}
+
+const SignUpForm = ({ errors, touched, isValidating }) => {
   return (
     <Form>
-      {touched.species && errors.species && <p className="error">{errors.species}</p>}
-      <Field type="text" name="species" placeholder="Species" />
-
-      {touched.age && errors.age && <p className="error">{errors.age}</p>}
-      <Field type="number" name="age" placeholder="Age" />
-
-      {touched.diet && errors.diet && <p className="error">{errors.diet}</p>}
-      <Field component="select" name="diet">
-        <option value="" disabled>Select Diet:</option> {/* <-- this is our placeholder */}
-        <option value="carnivore">Carnivore</option>
-        <option value="herbivore">Herbivore</option>
-        <option value="omnivore">Omnivore</option>
-      </Field>
-
-      {touched.vaccinations && errors.vaccinations && <p className="error">{errors.vaccinations}</p>}
+    <Input>
+      {touched.name && errors.name && <p className="error">{errors.name}</p>}
+      <Field className = "text" type="text" validate = {validateUsername} name="name" placeholder="name"></Field>
+</Input>
+<Input>
+      {touched.email && errors.email && <p className="error">{errors.email}</p>}
+      <Field className = "text" type="text" name="email" validate={validateEmail} placeholder="email" />
+</Input>
+<Input>
+      {touched.password && errors.password && <p className="error">{errors.password}</p>}
+      <Field className = "text" type="text" name="password" placeholder="password" />
+</Input>
+      {touched.termsOfService && errors.termsOfService && <p className="error">{errors.termsOfService}</p>}
       <label>
-        <Field type="checkbox" name="vaccinations" />
-        <span>Vaccinations</span>
+        <Field className = "box" type="checkbox" name="termsOfService" />
+        <span>Terms of service</span>
       </label>
 
-      <Field component="textarea" name="notes" placeholder="Notes" />
 
-      <button type="submit">Submit</button>
-    </Form>
+      <Button.Group color = 'green'>
+  <Button>Sign up</Button>
+  <Button.Or />
+  <Button positive>Log in</Button>
+</Button.Group>
+      </Form>
+
   )
 }
 
@@ -36,20 +61,26 @@ export default withFormik({
     // this makes these inputs "controlled", sets the values automatically for us
     return {
       // these keys line up with the "name" attribute on our Fields
-      species: values.species || '',
-      age: values.age || '',
-      diet: values.diet || '',
-      vaccinations: values.vaccinations || false,
-      notes: values.notes || ''
+      name: values.name || '',
+      email: values.email || '',
+      password: values.password || '',
+      termsOfService: values.termsOfService || false,
     }
   },
   validationSchema: yup.object().shape({
-    species: yup.string().required('Species is required!'),
-    age: yup.number().required('Age is required!').positive(),
-    diet: yup.string().required('Diet is required!'),
-    vaccinations: yup.boolean().oneOf([true], 'Animal must be vaccinated!')
+    name: yup.string()
+    .required('a name is required!')
+    .min(2, 'Too Short!')
+    .max(50, 'Too Long!'),
+    email: yup.string()
+    .required('an email is required!')
+    .email('Invalid email'),
+    password: yup.string()
+    .required('a password is required!'),
+    termsOfService: yup.boolean()
+    .oneOf([true], 'please agree to our terms of service')
   }),
   handleSubmit: (values) => {
     console.log(values)
   }
-})(AnimalForm)
+})(SignUpForm)
